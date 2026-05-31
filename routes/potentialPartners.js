@@ -1,0 +1,108 @@
+var express = require('express');
+var router  = express.Router();
+
+const potentialPartnerController = require('../controllers/potentialPartnerController');
+const { isAuthenticated }        = require('../middlewares/auth');
+const { checkPermission }        = require('../middlewares/acl');
+
+// ------------------------------------------------------------------
+// REST API — harus sebelum route lain agar tidak konflik dengan /:id
+// GET /potential-partners/api
+// ------------------------------------------------------------------
+router.get('/api',
+  isAuthenticated,
+  checkPermission('potential-partner.api'),
+  potentialPartnerController.apiList
+);
+
+// ------------------------------------------------------------------
+// Export CSV
+// GET /potential-partners/export/csv
+// ------------------------------------------------------------------
+router.get('/export/csv',
+  isAuthenticated,
+  checkPermission('potential-partner.export'),
+  potentialPartnerController.exportCsv
+);
+
+// ------------------------------------------------------------------
+// Export Excel
+// GET /potential-partners/export/excel
+// ------------------------------------------------------------------
+router.get('/export/excel',
+  isAuthenticated,
+  checkPermission('potential-partner.export'),
+  potentialPartnerController.exportExcel
+);
+
+// ------------------------------------------------------------------
+// Export PDF
+// GET /potential-partners/export/pdf
+// ------------------------------------------------------------------
+router.get('/export/pdf',
+  isAuthenticated,
+  checkPermission('potential-partner.export'),
+  potentialPartnerController.exportPdf
+);
+
+// ------------------------------------------------------------------
+// List — tampilkan semua potential partner (dengan search & pagination)
+// GET /potential-partners
+// ------------------------------------------------------------------
+router.get('/',
+  isAuthenticated,
+  checkPermission('potential-partner.view'),
+  potentialPartnerController.list
+);
+
+// ------------------------------------------------------------------
+// Add — tampilkan form tambah
+// GET /potential-partners/add
+// ------------------------------------------------------------------
+router.get('/add',
+  isAuthenticated,
+  checkPermission('potential-partner.create'),
+  potentialPartnerController.add
+);
+
+// ------------------------------------------------------------------
+// Store — proses simpan data baru
+// POST /potential-partners/store
+// ------------------------------------------------------------------
+router.post('/store',
+  isAuthenticated,
+  checkPermission('potential-partner.create'),
+  potentialPartnerController.store
+);
+
+// ------------------------------------------------------------------
+// Edit — tampilkan form edit
+// GET /potential-partners/edit/:id
+// ------------------------------------------------------------------
+router.get('/edit/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.edit'),
+  potentialPartnerController.edit
+);
+
+// ------------------------------------------------------------------
+// Update — proses simpan perubahan
+// POST /potential-partners/update/:id
+// ------------------------------------------------------------------
+router.post('/update/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.edit'),
+  potentialPartnerController.update
+);
+
+// ------------------------------------------------------------------
+// Delete — hapus data
+// POST /potential-partners/delete/:id
+// ------------------------------------------------------------------
+router.post('/delete/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.delete'),
+  potentialPartnerController.delete
+);
+
+module.exports = router;

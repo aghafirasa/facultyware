@@ -1,3 +1,19 @@
-<h1><%= message %></h1>
-<h2><%= error.status %></h2>
-<pre><%= error.stack %></pre>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Error - Facultyware</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen bg-background">
+    <div class="text-center space-y-4 max-w-md px-6">
+      <div class="text-6xl font-bold text-muted-foreground"><%= error.status || 500 %></div>
+      <h1 class="text-xl font-semibold"><%= message || 'Terjadi kesalahan' %></h1>
+      <% if (error.stack && process.env.NODE_ENV === 'development') { %>
+        <pre class="text-left text-xs bg-muted rounded p-4 overflow-auto max-h-48"><%= error.stack %></pre>
+      <% } %>
+      <a href="/" class="btn btn-primary inline-flex">Kembali ke Beranda</a>
+    </div>
+  </body>
+</html>

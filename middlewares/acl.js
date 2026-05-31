@@ -1,33 +1,32 @@
 const db = require("../lib/db");
 
 /**
- * ACL Middleware to check if a user has the required permission(s).
- * 
- * @param {string|string[]} requiredPermissions - A single permission or an array of permissions.
- * If an array is provided, the user must have at least one of the permissions.
- * 
- * Database Schema Requirements:
- * 
- * 1. roles: id, name
- * 2. permissions: id, name
- * 3. role_has_permissions: role_id, permission_id
- * 4. user_has_roles: user_id, role_id
+ * ACL Middleware — cek apakah user memiliki permission yang diperlukan.
+ *
+ * @param {string|string[]} requiredPermissions
+ *   Satu permission string atau array (user cukup punya salah satu).
+ *
+ * Database tables yang dibutuhkan:
+ *   roles, permissions, role_has_permissions, user_has_roles
  */
-
 const checkPermission = (requiredPermissions) => {
   return async (req, res, next) => {
+    // Belum login → redirect ke login
     if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      // Kalau request API (Accept: application/json atau path /api), kirim JSON
+      if (req.path.includes('/api') || req.headers.accept?.includes('application/json')) {
+        return res.status(401).json({ success: false, message: "Unauthorized: silakan login terlebih dahulu." });
+      }
+      return res.redirect("/login");
     }
 
-    const permissionsArray = Array.isArray(requiredPermissions) 
-      ? requiredPermissions 
+    const permissionsArray = Array.isArray(requiredPermissions)
+      ? requiredPermissions
       : [requiredPermissions];
 
     try {
-      // Query to check if the user has a role that contains any of the required permissions
       const query = `
-        SELECT DISTINCT p.name 
+        SELECT DISTINCT p.name
         FROM permissions p
         JOIN role_has_permissions rhp ON p.id = rhp.permission_id
         JOIN user_has_roles uhr ON rhp.role_id = uhr.role_id
@@ -40,17 +39,27 @@ const checkPermission = (requiredPermissions) => {
         return next();
       }
 
-      // If no matching permission found, return Forbidden
-      res.status(403).render("error", {
-        message: "Forbidden: You do not have permission to access this resource.",
-        error: { status: 403, stack: "" }
+      // Tidak punya izin
+      if (req.path.includes('/api') || req.headers.accept?.includes('application/json')) {
+        return res.status(403).json({
+          success : false,
+          message : "Forbidden: Anda tidak memiliki izin untuk mengakses resource ini.",
+        });
+      }
+
+      // Web page → render halaman 403
+      return res.status(403).render("error", {
+        message : "Akses Ditolak",
+        error   : {
+          status : 403,
+          stack  : "Anda tidak memiliki izin untuk mengakses halaman ini.",
+        },
       });
     } catch (err) {
+      console.error('[ACL] Error:', err);
       next(err);
     }
   };
 };
 
-module.exports = {
-  checkPermission
-};
+module.exports = { checkPermission };
