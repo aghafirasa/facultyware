@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Potential Partner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px;">
+      <h2>Data Potential Partner</h2>
+      <div>
+        <span>Halo, <%= user.name %> |</span>
+        <a href="/auth/logout">Logout</a>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <a href="/potential-partners/create" role="button">+ Tambah Partner</a>
+      <a href="/export/partners" role="button" class="secondary">Ekspor Partner (CSV/Excel)</a>
+    </div>
+
+    <table style="margin-top:20px;">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Instansi</th>
+          <th>Bidang</th>
+          <th>Kontak Person</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (partners.length === 0) { %>
+          <tr><td colspan="7" style="text-align:center;">Belum ada data</td></tr>
+        <% } %>
+        <% partners.forEach((p, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= p.nama_instansi %></td>
+          <td><%= p.bidang %></td>
+          <td><%= p.kontak_person %></td>
+          <td><%= p.email %></td>
+          <td><%= p.status %></td>
+          <td>
+            <a href="/potential-partners/edit/<%= p.id %>">Edit</a> |
+            <form action="/potential-partners/delete/<%= p.id %>" method="POST" style="display:inline;">
+              <button type="submit" onclick="return confirm('Yakin hapus?')" 
+                style="background:none; border:none; color:red; cursor:pointer; padding:0;">
+                Hapus
+              </button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

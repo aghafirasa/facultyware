@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Draft MoU</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:30px;">
+      <h2>Draft MoU Kerjasama</h2>
+      <a href="/auth/logout">Logout</a>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <a href="/mou/create" role="button">+ Tambah MoU</a>
+      <a href="/export/mou" role="button" class="secondary">Unduh Laporan MoU (PDF)</a>
+    </div>
+
+    <table style="margin-top:20px;">
+      <thead>
+        <tr><th>No</th><th>Instansi</th><th>Draft</th><th>Status</th><th>Aksi</th></tr>
+      </thead>
+      <tbody>
+        <% if (mous.length === 0) { %>
+          <tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>
+        <% } %>
+        <% mous.forEach((m, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= m.nama_instansi %></td>
+          <td><%= m.draft_isi ? (m.draft_isi.length > 50 ? m.draft_isi.substring(0,50) + '...' : m.draft_isi) : '-' %></td>
+          <td><%= m.status %></td>
+          <td>
+            <a href="/mou/edit/<%= m.id %>">Edit</a> |
+            <% if (m.status === 'draft') { %>
+              <form action="/mou/approve/<%= m.id %>" method="POST" style="display:inline;">
+                <button type="submit" style="background:none;border:none;color:green;cursor:pointer;">Setujui</button>
+              </form> |
+              <form action="/mou/reject/<%= m.id %>" method="POST" style="display:inline;">
+                <button type="submit" style="background:none;border:none;color:orange;cursor:pointer;">Tolak</button>
+              </form> |
+            <% } %>
+            <form action="/mou/delete/<%= m.id %>" method="POST" style="display:inline;">
+              <button type="submit" onclick="return confirm('Hapus?')" style="background:none;border:none;color:red;cursor:pointer;">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

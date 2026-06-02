@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Tambah MoU</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container" style="max-width:600px;margin-top:40px;">
+    <h2>Tambah Draft MoU</h2>
+    <form action="/mou/store" method="POST">
+      <label>Instansi</label>
+      <select name="potential_partner_id" required>
+        <option value="">-- Pilih Instansi --</option>
+        <% partners.forEach(p => { %>
+          <option value="<%= p.id %>"><%= p.nama_instansi %></option>
+        <% }) %>
+      </select>
+      <label>Isi Draft MoU</label>
+      <textarea name="draft_isi" rows="6" required></textarea>
+      <button type="submit">Simpan</button>
+      <a href="/mou" role="button" class="secondary">Batal</a>
+    </form>
+  </main>
+</body>
+</html>

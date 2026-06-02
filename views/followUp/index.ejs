@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Follow Up Kerjasama</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+
+  <main class="container">
+    <h2>Riwayat Follow Up</h2>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+      <a href="/follow-up/create" role="button">+ Tambah Follow Up</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>No</th><th>Instansi</th><th>Catatan</th><th>Tanggal</th><th>Aksi</th></tr>
+      </thead>
+      <tbody>
+        <% if (followUps.length === 0) { %>
+          <tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>
+        <% } %>
+        <% followUps.forEach((f, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= f.nama_instansi %></td>
+          <td><%= f.catatan %></td>
+          <td><%= f.tanggal %></td>
+          <td>
+            <a href="/follow-up/edit/<%= f.id %>">Edit</a> | 
+            <form action="/follow-up/delete/<%= f.id %>" method="POST" style="display:inline;">
+              <button type="submit" onclick="return confirm('Hapus?')" style="background:none;border:none;color:red;cursor:pointer;padding:0;">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

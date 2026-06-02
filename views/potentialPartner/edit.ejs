@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Potential Partner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container" style="max-width: 600px; margin-top: 40px;">
+    <h2>Edit Potential Partner</h2>
+    <form action="/potential-partners/update/<%= partner.id %>" method="POST">
+      <label>Nama Instansi</label>
+      <input type="text" name="nama_instansi" value="<%= partner.nama_instansi %>" required>
+
+      <label>Bidang</label>
+      <input type="text" name="bidang" value="<%= partner.bidang %>" required>
+
+      <label>Kontak Person</label>
+      <input type="text" name="kontak_person" value="<%= partner.kontak_person %>" required>
+
+      <label>Email</label>
+      <input type="email" name="email" value="<%= partner.email %>" required>
+
+      <label>Telepon</label>
+      <input type="text" name="telepon" value="<%= partner.telepon %>">
+
+      <label>Alamat</label>
+      <textarea name="alamat" rows="3"><%= partner.alamat %></textarea>
+
+      <label>Status</label>
+      <select name="status">
+        <option value="aktif" <%= partner.status === 'aktif' ? 'selected' : '' %>>Aktif</option>
+        <option value="nonaktif" <%= partner.status === 'nonaktif' ? 'selected' : '' %>>Nonaktif</option>
+      </select>
+
+      <button type="submit">Update</button>
+      <a href="/potential-partners" role="button" class="secondary">Batal</a>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Follow Up</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+
+  <main class="container" style="max-width:600px;">
+    <h2>Edit Follow Up</h2>
+    <form action="/follow-up/update/<%= followUp.id %>" method="POST">
+      
+      <label>Instansi</label>
+      <select name="potential_partner_id" required>
+        <option value="">-- Pilih Instansi --</option>
+        <% partners.forEach(p => { %>
+          <option value="<%= p.id %>" <%= p.id === followUp.potential_partner_id ? 'selected' : '' %>>
+            <%= p.nama_instansi %>
+          </option>
+        <% }) %>
+      </select>
+
+      <label>Catatan</label>
+      <textarea name="catatan" rows="4" required><%= followUp.catatan %></textarea>
+
+      <label>Tanggal</label>
+      <input type="date" name="tanggal" value="<%= followUp.tanggal_formatted %>" required>
+
+      <button type="submit">Update</button>
+      <a href="/follow-up" role="button" class="secondary">Batal</a>
+    </form>
+  </main>
+</body>
+</html>
