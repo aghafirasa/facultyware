@@ -21,8 +21,16 @@ const login = (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.render('auth/login', { error: 'Password salah' });
     
+    req.session.userId = user.id;
+    req.session.username = user.username || user.name;
     req.session.user = { id: user.id, name: user.name, role: user.role };
-    res.redirect('/potential-partners');
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session Save Error:", err);
+        return res.status(500).send("Gagal menyimpan session.");
+      }
+      res.redirect('/potential-partners');
+    });
   });
 };
 

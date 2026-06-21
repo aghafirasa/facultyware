@@ -108,7 +108,10 @@ const login = async (req, res, next) => {
     req.session.username = user.username || user.name;
     req.session.user     = { id: user.id, name: user.name || user.username, role: user.role || 'admin' };
 
-    res.redirect("/potential-partners");
+    req.session.save((err) => {
+      if (err) return next(err);
+      res.redirect("/potential-partners");
+    });
   } catch (err) {
     next(err);
   }
