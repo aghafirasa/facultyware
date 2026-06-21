@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Laporan MoU Kerjasama</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .header { text-align: center; margin-bottom: 30px; }
+    @media print {
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="background:#fff3cd; padding:10px; margin-bottom:20px; border:1px solid #ffeba2;">
+    <button onclick="window.print()">Klik Cetak / Simpan sebagai PDF</button>
+    <a href="/mou" style="margin-left: 15px;">Kembali ke Aplikasi</a>
+  </div>
+
+  <div class="header">
+    <h2>LAPORAN DRAFT MOU KERJASAMA POTENSIAL</h2>
+    <p>Universitas Andalas - Sistem Informasi</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama Instansi</th>
+        <th>Isi Draft MoU</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% mous.forEach((m, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= m.nama_instansi %></td>
+          <td><%= m.draft_isi %></td>
+          <td><strong><%= m.status.toUpperCase() %></strong></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <script>
+    window.onload = function() { window.print(); }
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Tambah Potential Partner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container" style="max-width: 600px; margin-top: 40px;">
+    <h2>Tambah Potential Partner</h2>
+    <form action="/potential-partners/store" method="POST">
+      <label>Nama Instansi</label>
+      <input type="text" name="nama_instansi" required>
+
+      <label>Bidang</label>
+      <input type="text" name="bidang" required>
+
+      <label>Kontak Person</label>
+      <input type="text" name="kontak_person" required>
+
+      <label>Email</label>
+      <input type="email" name="email" required>
+
+      <label>Telepon</label>
+      <input type="text" name="telepon">
+
+      <label>Alamat</label>
+      <textarea name="alamat" rows="3"></textarea>
+
+      <button type="submit">Simpan</button>
+      <a href="/potential-partners" role="button" class="secondary">Batal</a>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit MoU</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <main class="container" style="max-width:600px;margin-top:40px;">
+    <h2>Edit Draft MoU</h2>
+    <form action="/mou/update/<%= mou.id %>" method="POST">
+      <label>Isi Draft MoU</label>
+      <textarea name="draft_isi" rows="6" required><%= mou.draft_isi %></textarea>
+      <label>Status</label>
+      <select name="status">
+        <option value="draft" <%= mou.status==='draft'?'selected':'' %>>Draft</option>
+        <option value="disetujui" <%= mou.status==='disetujui'?'selected':'' %>>Disetujui</option>
+        <option value="ditolak" <%= mou.status==='ditolak'?'selected':'' %>>Ditolak</option>
+      </select>
+      <button type="submit">Update</button>
+      <a href="/mou" role="button" class="secondary">Batal</a>
+    </form>
+  </main>
+</body>
+</html>

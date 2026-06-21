@@ -106,6 +106,7 @@ const login = async (req, res, next) => {
     // Set session
     req.session.userId   = user.id;
     req.session.username = user.username || user.name;
+    req.session.user     = { id: user.id, name: user.name || user.username, role: user.role || 'admin' };
 
     res.redirect("/potential-partners");
   } catch (err) {
