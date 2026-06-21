@@ -497,7 +497,7 @@ const potentialPartnerController = {
       );
 
       // Create a document in Landscape A4 orientation
-      const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 40 });
+      const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 40, bufferPages: true });
 
       const filename = `potential-partners-${new Date().toISOString().slice(0, 10)}.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
@@ -547,7 +547,7 @@ const potentialPartnerController = {
       });
 
       // Draw border under header
-      doc.lineWidth(0.5).strokeStyle('#cbd5e1');
+      doc.lineWidth(0.5).strokeColor('#cbd5e1');
       doc.moveTo(startX, startY + 20).lineTo(doc.page.width - 40, startY + 20).stroke();
 
       // 4. Draw Rows
@@ -620,7 +620,7 @@ const potentialPartnerController = {
         currentY += 20;
 
         // Draw line bottom
-        doc.lineWidth(0.3).strokeStyle('#e2e8f0');
+        doc.lineWidth(0.3).strokeColor('#e2e8f0');
         doc.moveTo(startX, currentY).lineTo(doc.page.width - 40, currentY).stroke();
       });
 
