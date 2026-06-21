@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <script>
+      (() => {
+        try {
+          const s = localStorage.getItem('themeMode');
+          if (s ? s === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches)
+            document.documentElement.classList.add('dark');
+        } catch(_) {}
+        document.addEventListener('basecoat:theme', e => {
+          const m = e.detail?.mode;
+          const dark = m === 'dark' ? true : m === 'light' ? false : !document.documentElement.classList.contains('dark');
+          document.documentElement.classList.toggle('dark', dark);
+          try { localStorage.setItem('themeMode', dark ? 'dark' : 'light'); } catch(_) {}
+        });
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Potential Partner - Facultyware</title>
+    <meta name="description" content="Form edit data potential partner." />
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  </head>
+  <body>
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="sidebar" class="sidebar" data-side="left">
+      <nav aria-label="Sidebar navigation">
+        <header>
+          <a href="/home" class="btn-ghost p-2 h-12 w-full justify-start">
+            <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="grid flex-1 text-left text-sm leading-tight ml-2">
+              <span class="truncate font-semibold">Facultyware</span>
+              <span class="truncate text-xs opacity-60">Sistem Informasi Fakultas</span>
+            </div>
+          </a>
+        </header>
+        <section>
+          <div role="group" aria-labelledby="nav-main">
+            <h3 id="nav-main">Menu Utama</h3>
+            <ul>
+              <li><a href="/home"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Dashboard</span></a></li>
+              <li><a href="/potential-partners" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span>Potential Partner</span></a></li>
+            </ul>
+          </div>
+        </section>
+        <footer>
+          <div class="px-3 py-2">
+            <div class="flex items-center gap-3 rounded-md px-2 py-2 text-sm">
+              <div class="flex aspect-square size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                <%= user ? user.charAt(0).toUpperCase() : 'A' %>
+              </div>
+              <div class="grid flex-1 text-left leading-tight">
+                <span class="truncate text-sm font-medium"><%= user || 'Admin' %></span>
+              </div>
+            </div>
+            <a href="/logout" class="btn btn-ghost w-full justify-start mt-1 text-sm gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              Keluar
+            </a>
+          </div>
+        </footer>
+      </nav>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="flex-1 flex flex-col min-h-screen" style="margin-left:var(--sidebar-width,16rem)">
+      <!-- Topbar -->
+      <header class="border-b bg-background sticky top-0 z-10">
+        <div class="flex h-14 items-center gap-4 px-6">
+          <button class="btn btn-ghost btn-icon sidebar-toggle" aria-label="Toggle sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-muted-foreground">
+            <a href="/home" class="hover:text-foreground">Dashboard</a>
+            <span>/</span>
+            <a href="/potential-partners" class="hover:text-foreground">Potential Partner</a>
+            <span>/</span>
+            <span class="text-foreground font-medium">Edit</span>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="flex-1 p-6">
+        <div class="max-w-2xl mx-auto space-y-6">
+
+          <!-- Page Header -->
+          <div class="flex items-center gap-3">
+            <a href="/potential-partners" class="btn btn-ghost btn-icon" aria-label="Kembali">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </a>
+            <div>
+              <h1 class="text-xl font-bold">Edit Potential Partner</h1>
+              <p class="text-sm text-muted-foreground">
+                Mengubah data: <strong><%= potentialPartner.company_name %></strong>
+              </p>
+            </div>
+          </div>
+
+          <!-- Error messages -->
+          <% if (errors && errors.length > 0) { %>
+          <div class="alert alert-destructive" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+            <div>
+              <p class="font-medium text-sm">Terdapat kesalahan pada input:</p>
+              <ul class="list-disc list-inside mt-1 text-sm space-y-0.5">
+                <% errors.forEach(err => { %>
+                  <li><%= err %></li>
+                <% }) %>
+              </ul>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Info data lama -->
+          <div class="rounded-lg border border-dashed p-4 text-sm text-muted-foreground flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>ID: <strong class="text-foreground"><%= potentialPartner.id %></strong>
+            &nbsp;|&nbsp;
+            Dibuat: <strong class="text-foreground"><%= potentialPartner.created_at ? new Date(potentialPartner.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) : '-' %></strong>
+            </span>
+          </div>
+
+          <!-- Form Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title text-base">Informasi Perusahaan</h2>
+              <p class="card-description">Kolom bertanda * wajib diisi</p>
+            </div>
+            <div class="card-content">
+              <form id="form-edit-partner"
+                    action="/potential-partners/update/<%= potentialPartner.id %>"
+                    method="POST"
+                    class="space-y-5"
+                    novalidate
+                    onsubmit="return validateFormEdit(event)">
+
+                <!-- Nama Perusahaan -->
+                <div class="field">
+                  <label class="label" for="company_name">
+                    Nama Perusahaan <span class="text-destructive">*</span>
+                  </label>
+                  <input type="text" id="company_name" name="company_name"
+                    class="input"
+                    value="<%= potentialPartner.company_name %>"
+                    placeholder="Contoh: PT Teknologi Nusantara"
+                    maxlength="255"
+                    required />
+                </div>
+
+                <!-- Contact Person -->
+                <div class="field">
+                  <label class="label" for="contact_person">Contact Person</label>
+                  <input type="text" id="contact_person" name="contact_person"
+                    class="input"
+                    value="<%= potentialPartner.contact_person || '' %>"
+                    placeholder="Nama penanggung jawab"
+                    maxlength="255" />
+                </div>
+
+                <!-- Email & Telepon -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="field">
+                    <label class="label" for="email">Email</label>
+                    <input type="email" id="email" name="email"
+                      class="input"
+                      value="<%= potentialPartner.email || '' %>"
+                      placeholder="email@perusahaan.com"
+                      maxlength="255" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="phone">Nomor Telepon</label>
+                    <input type="text" id="phone" name="phone"
+                      class="input"
+                      value="<%= potentialPartner.phone || '' %>"
+                      placeholder="08xxxxxxxxxx"
+                      maxlength="50" />
+                  </div>
+                </div>
+
+                <!-- Alamat -->
+                <div class="field">
+                  <label class="label" for="address">Alamat</label>
+                  <textarea id="address" name="address" rows="3"
+                    class="input"
+                    placeholder="Alamat lengkap perusahaan"><%= potentialPartner.address || '' %></textarea>
+                </div>
+
+                <!-- Tipe Partnership & Status (2 kolom) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="field">
+                    <label class="label" for="partnership_type">Tipe Partnership</label>
+                    <select id="partnership_type" name="partnership_type" class="input">
+                      <option value="">-- Pilih Tipe --</option>
+                      <% ['Academic','Industry','Research','Internship','Other'].forEach(t => { %>
+                        <option value="<%= t %>" <%= potentialPartner.partnership_type === t ? 'selected' : '' %>><%= t %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="status">Status</label>
+                    <select id="status" name="status" class="input">
+                      <option value="active"   <%= potentialPartner.status === 'active'   ? 'selected' : '' %>>Aktif</option>
+                      <option value="inactive" <%= potentialPartner.status === 'inactive' ? 'selected' : '' %>>Nonaktif</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="field">
+                  <label class="label" for="description">Deskripsi</label>
+                  <textarea id="description" name="description" rows="4"
+                    class="input"
+                    placeholder="Deskripsi singkat tentang perusahaan..."><%= potentialPartner.description || '' %></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                  <a href="/potential-partners" class="btn btn-outline flex-1 sm:flex-none">Batal</a>
+                  <button type="submit" id="btn-simpan-perubahan" class="btn btn-primary flex-1 sm:flex-none gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Simpan Perubahan
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="card border-destructive/30">
+            <div class="card-header">
+              <h2 class="card-title text-base text-destructive">Hapus Data</h2>
+              <p class="card-description">Tindakan ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="card-content">
+              <form action="/potential-partners/delete/<%= potentialPartner.id %>" method="POST"
+                    onsubmit="return confirm('Yakin ingin menghapus data \u0022<%= potentialPartner.company_name.replace(/'/g, `\\'`) %>\u0022?\nData yang dihapus tidak dapat dikembalikan.')">
+                <button type="submit" id="btn-hapus-dari-edit" class="btn btn-destructive btn-sm gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  Hapus Data Ini
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <script src="/assets/js/basecoat.js" defer></script>
+    <script>
+      // Validasi sisi client (nilai tambah)
+      function validateFormEdit(e) {
+        const errors = [];
+        const companyName = document.getElementById('company_name').value.trim();
+        const email       = document.getElementById('email').value.trim();
+        const phone       = document.getElementById('phone').value.trim();
+
+        if (!companyName) {
+          errors.push('Nama perusahaan wajib diisi.');
+          document.getElementById('company_name').classList.add('input-error');
+        }
+        if (email) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errors.push('Format email tidak valid.');
+            document.getElementById('email').classList.add('input-error');
+          }
+        }
+        if (phone && !/^[0-9+\-\s().]+$/.test(phone)) {
+          errors.push('Nomor telepon hanya boleh berisi angka dan + - ( ).');
+          document.getElementById('phone').classList.add('input-error');
+        }
+
+        if (errors.length > 0) {
+          e.preventDefault();
+          let alertBox = document.getElementById('client-error-box');
+          if (!alertBox) {
+            alertBox = document.createElement('div');
+            alertBox.id = 'client-error-box';
+            alertBox.className = 'alert alert-destructive mb-4';
+            document.getElementById('form-edit-partner').prepend(alertBox);
+          }
+          alertBox.innerHTML = '<ul class="list-disc list-inside text-sm">' +
+            errors.map(err => `<li>${err}</li>`).join('') + '</ul>';
+          alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return false;
+        }
+        return true;
+      }
+
+      document.querySelectorAll('.input').forEach(el => {
+        el.addEventListener('input', () => el.classList.remove('input-error'));
+      });
+    </script>
+  </body>
+</html>
