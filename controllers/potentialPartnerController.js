@@ -5,6 +5,29 @@ const db = require('../lib/db');
 // ============================================================
 
 /**
+ * Base JOIN query untuk mengambil data potential partner.
+ * Menggunakan alias agar views tetap kompatibel.
+ */
+const BASE_SELECT = `
+  SELECT
+    pp.id,
+    pp.partner_id,
+    p.name          AS company_name,
+    p.contact_person,
+    p.email,
+    p.phone,
+    p.address,
+    p.type          AS partnership_type,
+    pp.description,
+    pp.status,
+    pp.title,
+    pp.created_at,
+    pp.updated_at
+  FROM partner_potentials pp
+  JOIN partners p ON pp.partner_id = p.id
+`;
+
+/**
  * Validasi data potential partner di sisi server (tanpa library eksternal).
  * Returns array of error strings (kosong = valid).
  */
@@ -38,17 +61,18 @@ function validatePartnerData({ company_name, email, phone, partnership_type, sta
     }
   }
 
-  // partnership_type — harus salah satu nilai enum jika diisi
-  const validTypes = ['Academic', 'Industry', 'Research', 'Internship', 'Other'];
+  // partnership_type (= partners.type) — harus salah satu nilai enum jika diisi
+  const validTypes = ['university', 'company', 'government', 'ngo', 'other'];
   if (partnership_type && partnership_type.trim().length > 0) {
     if (!validTypes.includes(partnership_type.trim())) {
       errors.push('Tipe partnership tidak valid.');
     }
   }
 
-  // status — hanya untuk update, harus active atau inactive
+  // status — hanya untuk update, harus salah satu dari nilai enum partner_potentials
+  const validStatuses = ['identified', 'in_discussion', 'proposed', 'converted', 'rejected'];
   if (status !== undefined && status !== '') {
-    if (!['active', 'inactive'].includes(status)) {
+    if (!validStatuses.includes(status)) {
       errors.push('Status tidak valid.');
     }
   }
@@ -77,11 +101,13 @@ const potentialPartnerController = {
       const params     = [];
 
       if (search) {
-        conditions.push('(company_name LIKE ? OR contact_person LIKE ? OR email LIKE ? OR phone LIKE ?)');
+        conditions.push('(p.name LIKE ? OR p.contact_person LIKE ? OR p.email LIKE ? OR p.phone LIKE ?)');
         params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
       }
-      if (filterStatus && ['active', 'inactive'].includes(filterStatus)) {
-        conditions.push('status = ?');
+
+      const validStatuses = ['identified', 'in_discussion', 'proposed', 'converted', 'rejected'];
+      if (filterStatus && validStatuses.includes(filterStatus)) {
+        conditions.push('pp.status = ?');
         params.push(filterStatus);
       }
 
@@ -89,7 +115,10 @@ const potentialPartnerController = {
 
       // Hitung total data untuk pagination
       const [countRows] = await db.query(
-        `SELECT COUNT(*) AS total FROM potential_partners ${where}`,
+        `SELECT COUNT(*) AS total
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ${where}`,
         params
       );
       const total      = countRows[0].total;
@@ -97,7 +126,7 @@ const potentialPartnerController = {
 
       // Ambil data dengan LIMIT & OFFSET
       const [rows] = await db.query(
-        `SELECT * FROM potential_partners ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+        `${BASE_SELECT} ${where} ORDER BY pp.created_at DESC LIMIT ? OFFSET ?`,
         [...params, limit, offset]
       );
 
@@ -139,6 +168,7 @@ const potentialPartnerController = {
 
   // ----------------------------------------------------------
   // STORE — proses simpan data baru
+  // Menyimpan ke 2 tabel: partners (instansi) + partner_potentials (potensi)
   // ----------------------------------------------------------
   store: async (req, res) => {
     const {
@@ -158,18 +188,52 @@ const potentialPartnerController = {
     }
 
     try {
-      await db.query(
-        `INSERT INTO potential_partners
-           (company_name, contact_person, email, phone, address, partnership_type, description, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())`,
+      // 1. INSERT ke tabel partners (data instansi)
+      const [partnerResult] = await db.query(
+        `INSERT INTO partners
+           (name, type, email, phone, address, contact_person, description, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
           company_name.trim(),
-          contact_person ? contact_person.trim() || null : null,
-          email          ? email.trim()          || null : null,
-          phone          ? phone.trim()           || null : null,
-          address        ? address.trim()         || null : null,
           partnership_type && partnership_type.trim() ? partnership_type.trim() : null,
-          description    ? description.trim()     || null : null,
+          email       ? email.trim()          || null : null,
+          phone       ? phone.trim()           || null : null,
+          address     ? address.trim()         || null : null,
+          contact_person ? contact_person.trim() || null : null,
+          null, // description ada di partner_potentials
+        ]
+      );
+      const partner_id = partnerResult.insertId;
+
+      // 2. INSERT ke tabel partner_potentials (data potensi kerjasama)
+      const [potentialResult] = await db.query(
+        `INSERT INTO partner_potentials
+           (partner_id, title, description, status, created_at)
+         VALUES (?, ?, ?, 'identified', NOW())`,
+        [
+          partner_id,
+          company_name.trim(),
+          description ? description.trim() || null : null,
+        ]
+      );
+      const potential_id = potentialResult.insertId;
+
+      // 3. INSERT ke tabel potential_partners (untuk sinkronisasi fitur teman)
+      await db.query(
+        `INSERT INTO potential_partners
+           (id, nama_instansi, bidang, kontak_person, email, telepon, alamat, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'aktif', NOW())`,
+        [
+          potential_id,
+          company_name.trim(),
+          partnership_type === 'university' ? 'Academic' :
+          partnership_type === 'company' ? 'Industry' :
+          partnership_type === 'government' ? 'Research' :
+          partnership_type === 'ngo' ? 'Other' : 'Other',
+          contact_person ? contact_person.trim() || null : null,
+          email ? email.trim() || null : null,
+          phone ? phone.trim() || null : null,
+          address ? address.trim() || null : null,
         ]
       );
 
@@ -189,7 +253,7 @@ const potentialPartnerController = {
   // EDIT — tampilkan form edit
   // ----------------------------------------------------------
   edit: async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params; // id = partner_potentials.id
 
     if (!id || isNaN(parseInt(id))) {
       req.session.flash = { error: 'ID tidak valid.' };
@@ -198,7 +262,7 @@ const potentialPartnerController = {
 
     try {
       const [results] = await db.query(
-        'SELECT * FROM potential_partners WHERE id = ?', [id]
+        `${BASE_SELECT} WHERE pp.id = ?`, [id]
       );
 
       if (results.length === 0) {
@@ -225,9 +289,10 @@ const potentialPartnerController = {
 
   // ----------------------------------------------------------
   // UPDATE — proses simpan perubahan
+  // Update ke 2 tabel: partners + partner_potentials
   // ----------------------------------------------------------
   update: async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params; // id = partner_potentials.id
     const {
       company_name, contact_person, email, phone,
       address, partnership_type, description, status
@@ -247,30 +312,73 @@ const potentialPartnerController = {
     }
 
     try {
-      // Cek data exists
-      const [check] = await db.query(
-        'SELECT id FROM potential_partners WHERE id = ?', [id]
+      // Cek dan ambil partner_id dari partner_potentials
+      const [ppRows] = await db.query(
+        'SELECT partner_id FROM partner_potentials WHERE id = ?', [id]
       );
-      if (check.length === 0) {
+      if (ppRows.length === 0) {
         req.session.flash = { error: 'Data potential partner tidak ditemukan.' };
         return res.redirect('/potential-partners');
       }
+      const partner_id = ppRows[0].partner_id;
 
+      // 1. UPDATE tabel partners (data instansi)
       await db.query(
-        `UPDATE potential_partners
-         SET company_name = ?, contact_person = ?, email = ?, phone = ?,
-             address = ?, partnership_type = ?, description = ?, status = ?, updated_at = NOW()
+        `UPDATE partners
+         SET name = ?, type = ?, email = ?, phone = ?,
+             address = ?, contact_person = ?, updated_at = NOW()
          WHERE id = ?`,
         [
           company_name.trim(),
-          contact_person ? contact_person.trim() || null : null,
-          email          ? email.trim()          || null : null,
-          phone          ? phone.trim()           || null : null,
-          address        ? address.trim()         || null : null,
           partnership_type && partnership_type.trim() ? partnership_type.trim() : null,
-          description    ? description.trim()     || null : null,
-          status || 'active',
+          email       ? email.trim()          || null : null,
+          phone       ? phone.trim()           || null : null,
+          address     ? address.trim()         || null : null,
+          contact_person ? contact_person.trim() || null : null,
+          partner_id,
+        ]
+      );
+
+      // 2. UPDATE tabel partner_potentials (status + description + title)
+      const validStatuses = ['identified', 'in_discussion', 'proposed', 'converted', 'rejected'];
+      const newStatus = validStatuses.includes(status) ? status : 'identified';
+
+      await db.query(
+        `UPDATE partner_potentials
+         SET title = ?, description = ?, status = ?, updated_at = NOW()
+         WHERE id = ?`,
+        [
+          company_name.trim(),
+          description ? description.trim() || null : null,
+          newStatus,
           id,
+        ]
+      );
+
+      // 3. UPDATE tabel potential_partners (untuk sinkronisasi fitur teman)
+      await db.query(
+        `UPDATE potential_partners
+         SET nama_instansi = ?,
+             bidang = ?,
+             kontak_person = ?,
+             email = ?,
+             telepon = ?,
+             alamat = ?,
+             status = ?,
+             updated_at = NOW()
+         WHERE id = ?`,
+        [
+          company_name.trim(),
+          partnership_type === 'university' ? 'Academic' :
+          partnership_type === 'company' ? 'Industry' :
+          partnership_type === 'government' ? 'Research' :
+          partnership_type === 'ngo' ? 'Other' : 'Other',
+          contact_person ? contact_person.trim() || null : null,
+          email ? email.trim() || null : null,
+          phone ? phone.trim() || null : null,
+          address ? address.trim() || null : null,
+          newStatus === 'rejected' ? 'nonaktif' : 'aktif',
+          id
         ]
       );
 
@@ -284,10 +392,10 @@ const potentialPartnerController = {
   },
 
   // ----------------------------------------------------------
-  // DELETE — hapus data
+  // DELETE — hapus data (dari partner_potentials dan partners)
   // ----------------------------------------------------------
   delete: async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params; // id = partner_potentials.id
 
     if (!id || isNaN(parseInt(id))) {
       req.session.flash = { error: 'ID tidak valid.' };
@@ -295,18 +403,36 @@ const potentialPartnerController = {
     }
 
     try {
-      const [check] = await db.query(
-        'SELECT company_name FROM potential_partners WHERE id = ?', [id]
+      // Ambil info sebelum hapus
+      const [ppRows] = await db.query(
+        `SELECT pp.partner_id, p.name AS company_name
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         WHERE pp.id = ?`,
+        [id]
       );
-      if (check.length === 0) {
+      if (ppRows.length === 0) {
         req.session.flash = { error: 'Data potential partner tidak ditemukan.' };
         return res.redirect('/potential-partners');
       }
 
-      const companyName = check[0].company_name;
+      const { partner_id, company_name } = ppRows[0];
+
+      // Hapus potential_partners dulu
       await db.query('DELETE FROM potential_partners WHERE id = ?', [id]);
 
-      req.session.flash = { success: `Data "${companyName}" berhasil dihapus.` };
+      // Hapus partner_potentials dulu (atau bisa pakai CASCADE)
+      await db.query('DELETE FROM partner_potentials WHERE id = ?', [id]);
+
+      // Hapus partners jika tidak ada partner_potentials lain yang mereferensikan
+      const [remainingPP] = await db.query(
+        'SELECT COUNT(*) AS cnt FROM partner_potentials WHERE partner_id = ?', [partner_id]
+      );
+      if (remainingPP[0].cnt === 0) {
+        await db.query('DELETE FROM partners WHERE id = ?', [partner_id]);
+      }
+
+      req.session.flash = { success: `Data "${company_name}" berhasil dihapus.` };
       res.redirect('/potential-partners');
     } catch (err) {
       console.error('[PP delete]', err);
@@ -330,26 +456,44 @@ const potentialPartnerController = {
       const params     = [];
 
       if (search) {
-        conditions.push('(company_name LIKE ? OR contact_person LIKE ? OR email LIKE ?)');
+        conditions.push('(p.name LIKE ? OR p.contact_person LIKE ? OR p.email LIKE ?)');
         params.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
-      if (status && ['active', 'inactive'].includes(status)) {
-        conditions.push('status = ?');
+
+      const validStatuses = ['identified', 'in_discussion', 'proposed', 'converted', 'rejected'];
+      if (status && validStatuses.includes(status)) {
+        conditions.push('pp.status = ?');
         params.push(status);
       }
 
       const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
 
       const [countRows] = await db.query(
-        `SELECT COUNT(*) AS total FROM potential_partners ${where}`, params
+        `SELECT COUNT(*) AS total
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ${where}`,
+        params
       );
       const total = countRows[0].total;
 
       const [rows] = await db.query(
-        `SELECT id, company_name, contact_person, email, phone, address,
-                partnership_type, description, status, created_at, updated_at
-         FROM potential_partners ${where}
-         ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+        `SELECT
+           pp.id,
+           p.name          AS company_name,
+           p.contact_person,
+           p.email,
+           p.phone,
+           p.address,
+           p.type          AS partnership_type,
+           pp.description,
+           pp.status,
+           pp.created_at,
+           pp.updated_at
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ${where}
+         ORDER BY pp.created_at DESC LIMIT ? OFFSET ?`,
         [...params, limit, offset]
       );
 
@@ -383,9 +527,20 @@ const potentialPartnerController = {
   exportCsv: async (req, res) => {
     try {
       const [rows] = await db.query(
-        `SELECT id, company_name, contact_person, email, phone, address,
-                partnership_type, description, status, created_at
-         FROM potential_partners ORDER BY created_at DESC`
+        `SELECT
+           pp.id,
+           p.name          AS company_name,
+           p.contact_person,
+           p.email,
+           p.phone,
+           p.address,
+           p.type          AS partnership_type,
+           pp.description,
+           pp.status,
+           pp.created_at
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ORDER BY pp.created_at DESC`
       );
 
       // Escape CSV field
@@ -395,6 +550,22 @@ const potentialPartnerController = {
         return s.includes(',') || s.includes('"') || s.includes('\n')
           ? '"' + s.replace(/"/g, '""') + '"'
           : s;
+      };
+
+      const statusLabel = {
+        identified : 'Teridentifikasi',
+        in_discussion: 'Dalam Diskusi',
+        proposed   : 'Diajukan',
+        converted  : 'Kerjasama',
+        rejected   : 'Ditolak',
+      };
+
+      const typeLabel = {
+        university : 'Universitas',
+        company    : 'Perusahaan',
+        government : 'Pemerintahan',
+        ngo        : 'NGO',
+        other      : 'Lainnya',
       };
 
       const headers = [
@@ -411,9 +582,9 @@ const potentialPartnerController = {
           esc(r.email),
           esc(r.phone),
           esc(r.address),
-          esc(r.partnership_type),
+          esc(typeLabel[r.partnership_type] || r.partnership_type || '-'),
           esc(r.description),
-          esc(r.status),
+          esc(statusLabel[r.status] || r.status),
           esc(r.created_at ? new Date(r.created_at).toLocaleString('id-ID') : ''),
         ].join(','));
       });
@@ -437,10 +608,37 @@ const potentialPartnerController = {
     try {
       const xlsx = require('xlsx');
       const [rows] = await db.query(
-        `SELECT id, company_name, contact_person, email, phone, address,
-                partnership_type, description, status, created_at
-         FROM potential_partners ORDER BY created_at DESC`
+        `SELECT
+           pp.id,
+           p.name          AS company_name,
+           p.contact_person,
+           p.email,
+           p.phone,
+           p.address,
+           p.type          AS partnership_type,
+           pp.description,
+           pp.status,
+           pp.created_at
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ORDER BY pp.created_at DESC`
       );
+
+      const statusLabel = {
+        identified   : 'Teridentifikasi',
+        in_discussion: 'Dalam Diskusi',
+        proposed     : 'Diajukan',
+        converted    : 'Kerjasama',
+        rejected     : 'Ditolak',
+      };
+
+      const typeLabel = {
+        university : 'Universitas',
+        company    : 'Perusahaan',
+        government : 'Pemerintahan',
+        ngo        : 'NGO',
+        other      : 'Lainnya',
+      };
 
       // Map rows to a cleaner format with localized labels
       const data = rows.map((r, index) => ({
@@ -450,9 +648,9 @@ const potentialPartnerController = {
         'Email': r.email || '-',
         'Telepon': r.phone || '-',
         'Alamat': r.address || '-',
-        'Tipe Partnership': r.partnership_type || '-',
+        'Tipe Partnership': typeLabel[r.partnership_type] || r.partnership_type || '-',
         'Deskripsi': r.description || '-',
-        'Status': r.status === 'active' ? 'Aktif' : 'Nonaktif',
+        'Status': statusLabel[r.status] || r.status,
         'Tanggal Dibuat': r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID') : '-'
       }));
 
@@ -491,10 +689,35 @@ const potentialPartnerController = {
     try {
       const PDFDocument = require('pdfkit');
       const [rows] = await db.query(
-        `SELECT id, company_name, contact_person, email, phone,
-                partnership_type, status, created_at
-         FROM potential_partners ORDER BY created_at DESC`
+        `SELECT
+           pp.id,
+           p.name          AS company_name,
+           p.contact_person,
+           p.email,
+           p.phone,
+           p.type          AS partnership_type,
+           pp.status,
+           pp.created_at
+         FROM partner_potentials pp
+         JOIN partners p ON pp.partner_id = p.id
+         ORDER BY pp.created_at DESC`
       );
+
+      const typeLabel = {
+        university : 'Universitas',
+        company    : 'Perusahaan',
+        government : 'Pemerintahan',
+        ngo        : 'NGO',
+        other      : 'Lainnya',
+      };
+
+      const statusLabel = {
+        identified   : 'Teridentifikasi',
+        in_discussion: 'Diskusi',
+        proposed     : 'Diajukan',
+        converted    : 'Kerjasama',
+        rejected     : 'Ditolak',
+      };
 
       // Create a document in Landscape A4 orientation
       const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 40, bufferPages: true });
@@ -509,15 +732,15 @@ const potentialPartnerController = {
       doc.fontSize(12).text('UNIVERSITAS FACULTYWARE INDONESIA', { align: 'center' });
       doc.fontSize(10).font('Helvetica').text('FAKULTAS TEKNOLOGI INFORMASI DAN ILMU KOMPUTER', { align: 'center' });
       doc.fontSize(8).text('Jl. Raya Sains & Enterprise No. 100, Jakarta | Telp: (021) 555-0199 | Email: info@facultyware.ac.id', { align: 'center' });
-      
+
       // Draw double horizontal line
       doc.moveDown(0.5);
       doc.lineWidth(1.5).moveTo(40, doc.y).lineTo(doc.page.width - 40, doc.y).stroke();
       doc.moveDown(0.1);
       doc.lineWidth(0.5).moveTo(40, doc.y).lineTo(doc.page.width - 40, doc.y).stroke();
-      
+
       doc.moveDown(1.5);
-      
+
       // 2. Document Title
       doc.fontSize(14).font('Helvetica-Bold').text('LAPORAN DATA MITRA POTENSIAL (POTENTIAL PARTNER)', { align: 'center' });
       doc.fontSize(9).font('Helvetica-Oblique').text(`Tanggal Unduh: ${new Date().toLocaleString('id-ID')}`, { align: 'center' });
@@ -533,12 +756,12 @@ const potentialPartnerController = {
         { name: 'Email', width: 140, align: 'left' },
         { name: 'Telepon', width: 100, align: 'left' },
         { name: 'Tipe', width: 90, align: 'center' },
-        { name: 'Status', width: 60, align: 'center' }
+        { name: 'Status', width: 80, align: 'center' }
       ];
 
       // Draw header background
       doc.rect(startX, startY, doc.page.width - 80, 20).fill('#f1f5f9');
-      
+
       doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9);
       let currentX = startX;
       columns.forEach(col => {
@@ -559,7 +782,7 @@ const potentialPartnerController = {
         if (currentY > 500) {
           doc.addPage();
           currentY = 40;
-          
+
           // Re-draw Headers
           doc.rect(startX, currentY, doc.page.width - 80, 20).fill('#f1f5f9');
           doc.fillColor('#0f172a').font('Helvetica-Bold');
@@ -579,9 +802,9 @@ const potentialPartnerController = {
         }
 
         doc.fillColor('#334155');
-        
+
         let rowX = startX;
-        
+
         // No
         doc.text(String(idx + 1), rowX, currentY + 5, { width: columns[0].width, align: columns[0].align });
         rowX += columns[0].width;
@@ -605,18 +828,22 @@ const potentialPartnerController = {
         rowX += columns[4].width;
 
         // Type
-        doc.text(r.partnership_type || '-', rowX, currentY + 5, { width: columns[5].width, align: columns[5].align });
+        doc.text(typeLabel[r.partnership_type] || r.partnership_type || '-', rowX, currentY + 5, { width: columns[5].width, align: columns[5].align });
         rowX += columns[5].width;
 
         // Status
-        const statusText = r.status === 'active' ? 'Aktif' : 'Nonaktif';
-        if (r.status === 'active') {
+        const sText = statusLabel[r.status] || r.status || '-';
+        if (r.status === 'converted') {
           doc.fillColor('#16a34a');
-        } else {
+        } else if (r.status === 'rejected') {
           doc.fillColor('#dc2626');
+        } else if (r.status === 'in_discussion') {
+          doc.fillColor('#d97706');
+        } else {
+          doc.fillColor('#2563eb');
         }
-        doc.text(statusText, rowX, currentY + 5, { width: columns[6].width, align: columns[6].align });
-        
+        doc.text(sText, rowX, currentY + 5, { width: columns[6].width, align: columns[6].align });
+
         currentY += 20;
 
         // Draw line bottom
@@ -628,7 +855,7 @@ const potentialPartnerController = {
       const pages = doc.bufferedPageRange();
       for (let i = 0; i < pages.count; i++) {
         doc.switchToPage(i);
-        
+
         doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica');
         doc.text(
           `Dokumen ini diterbitkan secara elektronik oleh Sistem Informasi Akademik Facultyware. Halaman ${i + 1} dari ${pages.count}`,

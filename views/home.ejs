@@ -54,6 +54,18 @@
                   <span>Potential Partner</span>
                 </a>
               </li>
+              <li>
+                <a href="/mou">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span>Draft MoU</span>
+                </a>
+              </li>
+              <li>
+                <a href="/follow-up">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span>Follow Up</span>
+                </a>
+              </li>
             </ul>
           </div>
         </section>
@@ -154,14 +166,14 @@
           <div class="card shadow-sm hover:shadow-md transition-shadow">
             <div class="card-content p-6">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-muted-foreground">Kemitraan Industri & Magang</span>
+                <span class="text-sm font-medium text-muted-foreground">Kemitraan Perusahaan & NGO</span>
                 <div class="p-2 bg-warning/10 text-warning rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
               </div>
               <div class="mt-4">
-                <span class="text-3xl font-bold tracking-tight"><%= stats.types.Industry + stats.types.Internship %></span>
-                <p class="text-xs text-muted-foreground mt-1">Mitra praktisi professional</p>
+                <span class="text-3xl font-bold tracking-tight"><%= stats.types.company + stats.types.ngo %></span>
+                <p class="text-xs text-muted-foreground mt-1">Mitra praktisi professional & NGO</p>
               </div>
             </div>
           </div>
@@ -170,14 +182,14 @@
           <div class="card shadow-sm hover:shadow-md transition-shadow">
             <div class="card-content p-6">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-muted-foreground">Akademik & Riset</span>
+                <span class="text-sm font-medium text-muted-foreground">Akademik & Pemerintah</span>
                 <div class="p-2 bg-info/10 text-info rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
                 </div>
               </div>
               <div class="mt-4">
-                <span class="text-3xl font-bold tracking-tight"><%= stats.types.Academic + stats.types.Research %></span>
-                <p class="text-xs text-muted-foreground mt-1">Institusi & pusat penelitian</p>
+                <span class="text-3xl font-bold tracking-tight"><%= stats.types.university + stats.types.government %></span>
+                <p class="text-xs text-muted-foreground mt-1">Institusi pendidikan & riset negara</p>
               </div>
             </div>
           </div>
@@ -215,17 +227,24 @@
                       </td>
                       <td>
                         <% if (partner.partnership_type) { %>
-                          <% const typeColors = {Academic:'badge-info', Industry:'badge-warning', Research:'badge-secondary', Internship:'badge-success', Other:'badge-outline'}; %>
+                          <% 
+                            const typeColors = { university: 'badge-info', company: 'badge-warning', government: 'badge-secondary', ngo: 'badge-success', other: 'badge-outline' }; 
+                            const typeLabels = { university: 'Universitas', company: 'Perusahaan', government: 'Pemerintah', ngo: 'NGO', other: 'Lainnya' };
+                          %>
                           <span class="badge <%= typeColors[partner.partnership_type] || 'badge-outline' %> text-xs">
-                            <%= partner.partnership_type %>
+                            <%= typeLabels[partner.partnership_type] || partner.partnership_type %>
                           </span>
                         <% } else { %>
                           <span class="text-muted-foreground text-xs">-</span>
                         <% } %>
                       </td>
                       <td>
-                        <span class="badge <%= partner.status === 'active' ? 'badge-success' : 'badge-destructive' %> text-xs">
-                          <%= partner.status === 'active' ? 'Aktif' : 'Nonaktif' %>
+                        <% 
+                          const statusColors = { identified: 'badge-info', in_discussion: 'badge-warning', proposed: 'badge-primary', converted: 'badge-success', rejected: 'badge-destructive' };
+                          const statusLabels = { identified: 'Teridentifikasi', in_discussion: 'Dalam Diskusi', proposed: 'Diajukan', converted: 'Kerjasama', rejected: 'Ditolak' };
+                        %>
+                        <span class="badge <%= statusColors[partner.status] || 'badge-outline' %> text-xs">
+                          <%= statusLabels[partner.status] || partner.status %>
                         </span>
                       </td>
                       <td class="text-center">
@@ -271,11 +290,11 @@
                   </div>
                   <% } %>
                   
-                  <%= renderBar('Academic', stats.types.Academic, stats.total, 'bg-info') %>
-                  <%= renderBar('Industry', stats.types.Industry, stats.total, 'bg-warning') %>
-                  <%= renderBar('Research', stats.types.Research, stats.total, 'bg-secondary') %>
-                  <%= renderBar('Internship', stats.types.Internship, stats.total, 'bg-success') %>
-                  <%= renderBar('Other', stats.types.Other, stats.total, 'bg-slate-400') %>
+                  <%= renderBar('Universitas', stats.types.university, stats.total, 'bg-info') %>
+                  <%= renderBar('Perusahaan', stats.types.company, stats.total, 'bg-warning') %>
+                  <%= renderBar('Pemerintah', stats.types.government, stats.total, 'bg-secondary') %>
+                  <%= renderBar('NGO', stats.types.ngo, stats.total, 'bg-success') %>
+                  <%= renderBar('Lainnya', stats.types.other, stats.total, 'bg-slate-400') %>
                 </div>
               </div>
             </div>

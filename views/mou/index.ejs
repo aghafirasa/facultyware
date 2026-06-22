@@ -1,55 +1,197 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>Draft MoU</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-</head>
-<body>
-  <%- include('../partials/navbar') %>
-  <main class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:30px;">
-      <h2>Draft MoU Kerjasama</h2>
-      <a href="/auth/logout">Logout</a>
-    </div>
+  <head>
+    <script>
+      (() => {
+        try {
+          const s = localStorage.getItem('themeMode');
+          if (s ? s === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches)
+            document.documentElement.classList.add('dark');
+        } catch(_) {}
+        document.addEventListener('basecoat:theme', e => {
+          const m = e.detail?.mode;
+          const dark = m === 'dark' ? true : m === 'light' ? false : !document.documentElement.classList.contains('dark');
+          document.documentElement.classList.toggle('dark', dark);
+          try { localStorage.setItem('themeMode', dark ? 'dark' : 'light'); } catch(_) {}
+        });
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Draft MoU - Facultyware</title>
+    <meta name="description" content="Kelola draf MoU kemitraan dengan mudah." />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="sidebar" class="sidebar" data-side="left">
+      <nav aria-label="Sidebar navigation">
+        <header>
+          <a href="/home" class="btn-ghost p-2 h-12 w-full justify-start">
+            <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="grid flex-1 text-left text-sm leading-tight ml-2">
+              <span class="truncate font-semibold">Facultyware</span>
+              <span class="truncate text-xs opacity-60">Sistem Informasi Fakultas</span>
+            </div>
+          </a>
+        </header>
+        <section>
+          <div role="group" aria-labelledby="nav-main">
+            <h3 id="nav-main">Menu Utama</h3>
+            <ul>
+              <li>
+                <a href="/home">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  <span>Dashboard</span>
+                </a>
+              </li>
+              <li>
+                <a href="/potential-partners">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                  <span>Potential Partner</span>
+                </a>
+              </li>
+              <li>
+                <a href="/mou" aria-current="page">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span>Draft MoU</span>
+                </a>
+              </li>
+              <li>
+                <a href="/follow-up">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span>Follow Up</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+        <footer>
+          <div class="px-3 py-2">
+            <div class="flex items-center gap-3 rounded-md px-2 py-2 text-sm">
+              <div class="flex aspect-square size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                <%= user ? user.name.charAt(0).toUpperCase() : 'A' %>
+              </div>
+              <div class="grid flex-1 text-left leading-tight">
+                <span class="truncate text-sm font-medium"><%= user ? user.name : 'Admin' %></span>
+                <span class="truncate text-xs opacity-60">Administrator</span>
+              </div>
+            </div>
+            <a href="/logout" class="btn btn-ghost w-full justify-start mt-1 text-sm gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+              Keluar
+            </a>
+          </div>
+        </footer>
+      </nav>
+    </aside>
 
-    <div style="display: flex; gap: 10px;">
-      <a href="/mou/create" role="button">+ Tambah MoU</a>
-      <a href="/export/mou" role="button" class="secondary">Unduh Laporan MoU (PDF)</a>
-    </div>
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="peer-[.sidebar]/sidebar:ml-64 flex-1 flex flex-col min-h-screen" style="margin-left:var(--sidebar-width,16rem)">
+      <!-- Topbar -->
+      <header class="border-b bg-background sticky top-0 z-10">
+        <div class="flex h-14 items-center gap-4 px-6">
+          <button class="btn btn-ghost btn-icon sidebar-toggle" aria-label="Toggle sidebar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+          <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-muted-foreground">
+            <a href="/home" class="hover:text-foreground">Dashboard</a>
+            <span>/</span>
+            <span class="text-foreground font-medium">Draft MoU</span>
+          </nav>
+        </div>
+      </header>
 
-    <table style="margin-top:20px;">
-      <thead>
-        <tr><th>No</th><th>Instansi</th><th>Draft</th><th>Status</th><th>Aksi</th></tr>
-      </thead>
-      <tbody>
-        <% if (mous.length === 0) { %>
-          <tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>
-        <% } %>
-        <% mous.forEach((m, i) => { %>
-        <tr>
-          <td><%= i + 1 %></td>
-          <td><%= m.nama_instansi %></td>
-          <td><%= m.draft_isi ? (m.draft_isi.length > 50 ? m.draft_isi.substring(0,50) + '...' : m.draft_isi) : '-' %></td>
-          <td><%= m.status %></td>
-          <td>
-            <a href="/mou/edit/<%= m.id %>">Edit</a> |
-            <% if (m.status === 'draft') { %>
-              <form action="/mou/approve/<%= m.id %>" method="POST" style="display:inline;">
-                <button type="submit" style="background:none;border:none;color:green;cursor:pointer;">Setujui</button>
-              </form> |
-              <form action="/mou/reject/<%= m.id %>" method="POST" style="display:inline;">
-                <button type="submit" style="background:none;border:none;color:orange;cursor:pointer;">Tolak</button>
-              </form> |
-            <% } %>
-            <form action="/mou/delete/<%= m.id %>" method="POST" style="display:inline;">
-              <button type="submit" onclick="return confirm('Hapus?')" style="background:none;border:none;color:red;cursor:pointer;">Hapus</button>
-            </form>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </main>
-</body>
+      <!-- Page Content -->
+      <div class="flex-1 p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight">Draft MoU Kerjasama</h1>
+            <p class="text-sm text-muted-foreground">Kelola berkas rancangan MoU kemitraan dengan instansi luar.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <a href="/mou/create" class="btn btn-primary gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              + Tambah MoU
+            </a>
+            <a href="/export/mou" class="btn btn-outline gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Unduh Laporan MoU (PDF)
+            </a>
+          </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card">
+          <div class="overflow-x-auto">
+            <table class="table w-full">
+              <thead>
+                <tr>
+                  <th class="w-12 text-center">No</th>
+                  <th>Instansi / Mitra</th>
+                  <th>Rancangan Draft MoU</th>
+                  <th>Status</th>
+                  <th class="w-48 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (mous.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="py-8 text-center text-sm text-muted-foreground">
+                      Belum ada data draf MoU kerjasama.
+                    </td>
+                  </tr>
+                <% } %>
+                <% mous.forEach((m, i) => { %>
+                <tr>
+                  <td class="text-center font-medium"><%= i + 1 %></td>
+                  <td>
+                    <div class="font-bold text-sm text-foreground"><%= m.nama_instansi %></div>
+                  </td>
+                  <td class="max-w-xs truncate text-sm">
+                    <%= m.draft_isi ? (m.draft_isi.length > 80 ? m.draft_isi.substring(0,80) + '...' : m.draft_isi) : '-' %>
+                  </td>
+                  <td>
+                    <% 
+                      let badgeClass = 'badge-outline';
+                      if (m.status === 'disetujui') badgeClass = 'badge-success';
+                      else if (m.status === 'ditolak') badgeClass = 'badge-destructive';
+                      else if (m.status === 'draft') badgeClass = 'badge-warning';
+                    %>
+                    <span class="badge <%= badgeClass %> text-xs font-semibold">
+                      <%= m.status ? m.status.toLowerCase() : 'draft' %>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <a href="/mou/edit/<%= m.id %>" class="btn btn-outline btn-xs" title="Edit">
+                        Edit
+                      </a>
+
+                      <% if (m.status === 'draft') { %>
+                        <form action="/mou/approve/<%= m.id %>" method="POST" style="display:inline;">
+                          <button type="submit" class="btn btn-success btn-xs" style="background-color: #16a34a; color: white;">Setujui</button>
+                        </form>
+                        <form action="/mou/reject/<%= m.id %>" method="POST" style="display:inline;">
+                          <button type="submit" class="btn btn-warning btn-xs" style="background-color: #d97706; color: white;">Tolak</button>
+                        </form>
+                      <% } %>
+
+                      <form action="/mou/delete/<%= m.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data MoU ini?')">
+                        <button type="submit" class="btn btn-destructive btn-xs">Hapus</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="/assets/js/basecoat.js" defer></script>
+  </body>
 </html>

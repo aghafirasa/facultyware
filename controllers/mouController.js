@@ -104,7 +104,14 @@ const approve = (req, res) => {
           console.error("DB Error (mou/approve - Lapisan 3):", err);
           return res.status(500).send("MoU disetujui, namun gagal memperbarui status partner menjadi aktif.");
         }
-        res.redirect('/mou');
+        
+        // Sinkronkan ke tabel partner_potentials baru (status: converted)
+        db.query('UPDATE partner_potentials SET status="converted" WHERE id=?', [partnerId], (syncErr) => {
+          if (syncErr) {
+            console.error("DB Error (mou/approve - Sync):", syncErr);
+          }
+          res.redirect('/mou');
+        });
       });
     });
   });

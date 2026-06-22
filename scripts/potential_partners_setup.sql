@@ -15,21 +15,41 @@ ALTER TABLE `users`
   ADD UNIQUE INDEX `users_username_unique` (`username`);
 
 -- -----------------------------------------------------
--- Table: potential_partners
+-- Table: partners  (dari template dosen db_tb_pweb_v2.sql)
+-- Menyimpan data instansi/perusahaan mitra
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `potential_partners` (
+CREATE TABLE IF NOT EXISTS `partners` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `company_name` VARCHAR(255) NOT NULL,
-  `contact_person` VARCHAR(255) NULL DEFAULT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `type` ENUM('university','company','government','ngo','other') NULL DEFAULT NULL,
+  `address` TEXT NULL DEFAULT NULL,
   `email` VARCHAR(255) NULL DEFAULT NULL,
   `phone` VARCHAR(50) NULL DEFAULT NULL,
-  `address` TEXT NULL DEFAULT NULL,
-  `partnership_type` ENUM('Academic','Industry','Research','Internship','Other') NULL DEFAULT NULL,
   `description` TEXT NULL DEFAULT NULL,
-  `status` ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  `contact_person` VARCHAR(255) NULL DEFAULT NULL,
   `created_at` TIMESTAMP NULL DEFAULT NULL,
   `updated_at` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------
+-- Table: partner_potentials  (dari template dosen db_tb_pweb_v2.sql)
+-- Menyimpan data potensi kerjasama
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `partner_potentials` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `partner_id` BIGINT UNSIGNED NOT NULL,
+  `title` VARCHAR(255) NULL DEFAULT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `status` ENUM('identified','in_discussion','proposed','converted','rejected') NOT NULL DEFAULT 'identified',
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `partner_potentials_partner_id_foreign` (`partner_id` ASC),
+  CONSTRAINT `partner_potentials_partner_id_foreign`
+    FOREIGN KEY (`partner_id`)
+    REFERENCES `partners` (`id`)
+    ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------
@@ -127,10 +147,19 @@ INSERT IGNORE INTO `users` (`id`, `name`, `username`, `email`, `password`, `crea
 INSERT IGNORE INTO `user_has_roles` (`user_id`, `role_id`) VALUES (1, 1);
 
 -- -----------------------------------------------------
--- Seed: Sample Data Potential Partners
+-- Seed: Sample Data Partners (instansi)
 -- -----------------------------------------------------
-INSERT IGNORE INTO `potential_partners` (`id`, `company_name`, `contact_person`, `email`, `phone`, `address`, `partnership_type`, `description`, `status`, `created_at`) VALUES
-(1, 'PT Teknologi Nusantara', 'Budi Santoso', 'budi@teknus.co.id', '08123456789', 'Jl. Sudirman No. 100, Jakarta Pusat', 'Industry', 'Perusahaan teknologi bidang pengembangan perangkat lunak enterprise.', 'active', NOW()),
-(2, 'Universitas Merdeka Indonesia', 'Dr. Sari Dewi', 'sari@unimerdeka.ac.id', '02188765432', 'Jl. Pahlawan No. 20, Surabaya', 'Academic', 'Kerjasama riset bersama dan program pertukaran mahasiswa antar institusi.', 'active', NOW()),
-(3, 'BRIN Pusat Riset AI', 'Ir. Ahmad Fauzi M.T.', 'ahmad.fauzi@brin.go.id', '02134567890', 'Jl. Gatot Subroto Kav. 33, Jakarta Selatan', 'Research', 'Kolaborasi riset nasional bidang kecerdasan buatan dan data sains.', 'active', NOW()),
-(4, 'CV Makmur Jaya', 'Retno Wulandari', 'retno@makmurjaya.id', '08567891234', 'Jl. Raya Bogor KM 25, Depok', 'Internship', 'Program magang mahasiswa di bidang manufaktur dan logistik.', 'inactive', NOW());
+INSERT IGNORE INTO `partners` (`id`, `name`, `type`, `contact_person`, `email`, `phone`, `address`, `created_at`) VALUES
+(1, 'PT Teknologi Nusantara',      'company',    'Budi Santoso',          'budi@teknus.co.id',        '08123456789', 'Jl. Sudirman No. 100, Jakarta Pusat',        NOW()),
+(2, 'Universitas Merdeka Indonesia','university', 'Dr. Sari Dewi',         'sari@unimerdeka.ac.id',    '02188765432', 'Jl. Pahlawan No. 20, Surabaya',              NOW()),
+(3, 'BRIN Pusat Riset AI',          'government', 'Ir. Ahmad Fauzi M.T.', 'ahmad.fauzi@brin.go.id',   '02134567890', 'Jl. Gatot Subroto Kav. 33, Jakarta Selatan', NOW()),
+(4, 'CV Makmur Jaya',               'company',    'Retno Wulandari',       'retno@makmurjaya.id',      '08567891234', 'Jl. Raya Bogor KM 25, Depok',                NOW());
+
+-- -----------------------------------------------------
+-- Seed: Sample Data Partner Potentials (potensi kerjasama)
+-- -----------------------------------------------------
+INSERT IGNORE INTO `partner_potentials` (`id`, `partner_id`, `title`, `description`, `status`, `created_at`) VALUES
+(1, 1, 'PT Teknologi Nusantara',       'Perusahaan teknologi bidang pengembangan perangkat lunak enterprise.',       'identified', NOW()),
+(2, 2, 'Universitas Merdeka Indonesia','Kerjasama riset bersama dan program pertukaran mahasiswa antar institusi.',   'identified', NOW()),
+(3, 3, 'BRIN Pusat Riset AI',          'Kolaborasi riset nasional bidang kecerdasan buatan dan data sains.',           'identified', NOW()),
+(4, 4, 'CV Makmur Jaya',               'Program magang mahasiswa di bidang manufaktur dan logistik.',                  'rejected',   NOW());

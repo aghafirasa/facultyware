@@ -9,26 +9,27 @@ const index = (req, res) => {
 const home = async (req, res, next) => {
   try {
     // 1. Total Partners
-    const [totalRows] = await db.query('SELECT COUNT(*) AS total FROM potential_partners');
+    const [totalRows] = await db.query('SELECT COUNT(*) AS total FROM partner_potentials');
     const totalPartners = totalRows[0]?.total || 0;
 
-    // 2. Active Partners
-    const [activeRows] = await db.query("SELECT COUNT(*) AS total FROM potential_partners WHERE status = 'active'");
+    // 2. Active Partners (status != 'rejected')
+    const [activeRows] = await db.query("SELECT COUNT(*) AS total FROM partner_potentials WHERE status != 'rejected'");
     const activePartners = activeRows[0]?.total || 0;
 
     // 3. Partners by Type
     const [typeRows] = await db.query(`
-      SELECT partnership_type, COUNT(*) AS count 
-      FROM potential_partners 
-      GROUP BY partnership_type
+      SELECT p.type AS partnership_type, COUNT(*) AS count 
+      FROM partner_potentials pp
+      JOIN partners p ON pp.partner_id = p.id
+      GROUP BY p.type
     `);
     
     const statsByType = {
-      Academic: 0,
-      Industry: 0,
-      Research: 0,
-      Internship: 0,
-      Other: 0
+      university: 0,
+      company: 0,
+      government: 0,
+      ngo: 0,
+      other: 0
     };
     typeRows.forEach(row => {
       if (row.partnership_type && statsByType[row.partnership_type] !== undefined) {
@@ -37,7 +38,12 @@ const home = async (req, res, next) => {
     });
 
     // 4. Recent Partners (last 3)
-    const [recentPartners] = await db.query('SELECT * FROM potential_partners ORDER BY created_at DESC LIMIT 3');
+    const [recentPartners] = await db.query(`
+      SELECT pp.id, p.name AS company_name, p.type AS partnership_type, p.email, pp.status, pp.created_at
+      FROM partner_potentials pp
+      JOIN partners p ON pp.partner_id = p.id
+      ORDER BY pp.created_at DESC LIMIT 3
+    `);
 
     res.render("home", { 
       title: "Dashboard", 
@@ -57,7 +63,7 @@ const home = async (req, res, next) => {
       stats: {
         total: 0,
         active: 0,
-        types: { Academic: 0, Industry: 0, Research: 0, Internship: 0, Other: 0 }
+        types: { university: 0, company: 0, government: 0, ngo: 0, other: 0 }
       },
       recentPartners: []
     });
