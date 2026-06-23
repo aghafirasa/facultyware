@@ -257,29 +257,6 @@
             </div>
           </div>
 
-          <% if (potentialPartner.status !== 'converted' && potentialPartner.status !== 'rejected') { %>
-          <!-- Keputusan Kerjasama (Approve/Reject) -->
-          <div class="card border-zinc-200 dark:border-zinc-800">
-            <div class="card-header">
-              <h2 class="card-title text-base">Keputusan Kerjasama</h2>
-              <p class="card-description">Tentukan apakah kerjasama dengan mitra ini disetujui menjadi aktif atau ditolak.</p>
-            </div>
-            <div class="card-content flex flex-col sm:flex-row gap-3">
-              <form action="/potential-partners/approve/<%= potentialPartner.id %>" method="POST" class="flex-1">
-                <button type="submit" id="btn-setujui-kerjasama" class="btn btn-success w-full gap-2 justify-center" style="background-color:#16a34a;color:white;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  Setujui Kerjasama (Aktif)
-                </button>
-              </form>
-              <form action="/potential-partners/reject/<%= potentialPartner.id %>" method="POST" class="flex-1">
-                <button type="submit" id="btn-tolak-kerjasama" class="btn btn-warning w-full gap-2 justify-center" style="background-color:#d97706;color:white;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                  Tolak Kerjasama
-                </button>
-              </form>
-            </div>
-          </div>
-          <% } %>
 
           <!-- Danger Zone -->
           <div class="card border-destructive/30">

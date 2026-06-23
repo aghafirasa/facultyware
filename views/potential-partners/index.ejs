@@ -275,6 +275,27 @@
                     </td>
                     <td>
                       <div class="flex items-center justify-center gap-1">
+                        <% if (partner.status !== 'converted' && partner.status !== 'rejected') { %>
+                        <form action="/potential-partners/approve/<%= partner.id %>" method="POST" class="inline">
+                          <button type="submit"
+                                  id="btn-setujui-list-<%= partner.id %>"
+                                  class="btn btn-sm btn-icon text-white"
+                                  style="background-color: #16a34a; border-color: #16a34a;"
+                                  title="Setujui Kerjasama">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                          </button>
+                        </form>
+                        <form action="/potential-partners/reject/<%= partner.id %>" method="POST" class="inline">
+                          <button type="submit"
+                                  id="btn-tolak-list-<%= partner.id %>"
+                                  class="btn btn-sm btn-icon text-white"
+                                  style="background-color: #d97706; border-color: #d97706;"
+                                  title="Tolak Kerjasama">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </form>
+                        <% } %>
+
                         <a href="/potential-partners/edit/<%= partner.id %>"
                            id="btn-edit-<%= partner.id %>"
                            class="btn btn-outline btn-sm btn-icon"
@@ -282,7 +303,7 @@
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
                         </a>
                         <form action="/potential-partners/delete/<%= partner.id %>" method="POST" class="inline"
-                              onsubmit="return confirm('Yakin ingin menghapus data \u0022<%= partner.company_name.replace(/'/g, `\\'`) %>\u0022?\nData yang dihapus tidak dapat dikembalikan.')">
+                               onsubmit="return confirm('Yakin ingin menghapus data \u0022<%= partner.company_name.replace(/'/g, `\\'`) %>\u0022?\nData yang dihapus tidak dapat dikembalikan.')">
                           <button type="submit"
                                   id="btn-hapus-<%= partner.id %>"
                                   class="btn btn-destructive btn-sm btn-icon"

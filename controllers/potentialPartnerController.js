@@ -468,11 +468,11 @@ const potentialPartnerController = {
       );
 
       req.session.flash = { success: 'Kemitraan berhasil disetujui menjadi Aktif.' };
-      res.redirect(`/potential-partners/edit/${id}`);
+      res.redirect('/potential-partners');
     } catch (err) {
       console.error('[PP approve]', err);
       req.session.flash = { error: 'Gagal menyetujui kemitraan: ' + err.message };
-      res.redirect(`/potential-partners/edit/${id}`);
+      res.redirect('/potential-partners');
     }
   },
 
@@ -506,11 +506,11 @@ const potentialPartnerController = {
       );
 
       req.session.flash = { success: 'Kemitraan berhasil ditolak.' };
-      res.redirect(`/potential-partners/edit/${id}`);
+      res.redirect('/potential-partners');
     } catch (err) {
       console.error('[PP reject]', err);
       req.session.flash = { error: 'Gagal menolak kemitraan: ' + err.message };
-      res.redirect(`/potential-partners/edit/${id}`);
+      res.redirect('/potential-partners');
     }
   },
 
