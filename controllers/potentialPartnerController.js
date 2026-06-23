@@ -457,13 +457,13 @@ const potentialPartnerController = {
 
       // 2. Sync ke tabel potential_partners (status: 'aktif')
       await db.query(
-        "UPDATE potential_partners SET status = 'aktif', updated_at = NOW() WHERE id = ?",
+        "UPDATE potential_partners SET status = 'aktif' WHERE id = ?",
         [id]
       );
 
       // 3. Sync ke tabel mou (status: 'disetujui' jika ada)
       await db.query(
-        "UPDATE mou SET status = 'disetujui', updated_at = NOW() WHERE potential_partner_id = ?",
+        "UPDATE mou SET status = 'disetujui' WHERE potential_partner_id = ?",
         [id]
       );
 
@@ -495,13 +495,13 @@ const potentialPartnerController = {
 
       // 2. Sync ke tabel potential_partners (status: 'nonaktif')
       await db.query(
-        "UPDATE potential_partners SET status = 'nonaktif', updated_at = NOW() WHERE id = ?",
+        "UPDATE potential_partners SET status = 'nonaktif' WHERE id = ?",
         [id]
       );
 
       // 3. Sync ke tabel mou (status: 'ditolak' jika ada)
       await db.query(
-        "UPDATE mou SET status = 'ditolak', updated_at = NOW() WHERE potential_partner_id = ?",
+        "UPDATE mou SET status = 'ditolak' WHERE potential_partner_id = ?",
         [id]
       );
 
