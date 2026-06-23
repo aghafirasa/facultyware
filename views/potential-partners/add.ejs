@@ -83,9 +83,6 @@
       <!-- Topbar -->
       <header class="border-b bg-background sticky top-0 z-10">
         <div class="flex h-14 items-center gap-4 px-6">
-          <button class="btn btn-ghost btn-icon sidebar-toggle" aria-label="Toggle sidebar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-          </button>
           <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-sm text-muted-foreground">
             <a href="/home" class="hover:text-foreground">Dashboard</a>
             <span>/</span>
@@ -192,7 +189,7 @@
 
                 <div class="field">
                   <label class="label" for="partnership_type">Tipe Partnership</label>
-                  <select id="partnership_type" name="partnership_type" class="input">
+                  <select id="partnership_type" name="partnership_type" class="input w-full">
                     <option value="">-- Pilih Tipe --</option>
                     <option value="university"  <%= oldInput.partnership_type === 'university'  ? 'selected' : '' %>>Academic</option>
                     <option value="company"     <%= oldInput.partnership_type === 'company'     ? 'selected' : '' %>>Industry</option>
