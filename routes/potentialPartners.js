@@ -96,6 +96,26 @@ router.post('/update/:id',
 );
 
 // ------------------------------------------------------------------
+// Approve — setujui kemitraan
+// POST /potential-partners/approve/:id
+// ------------------------------------------------------------------
+router.post('/approve/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.edit'),
+  potentialPartnerController.approve
+);
+
+// ------------------------------------------------------------------
+// Reject — tolak kemitraan
+// POST /potential-partners/reject/:id
+// ------------------------------------------------------------------
+router.post('/reject/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.edit'),
+  potentialPartnerController.reject
+);
+
+// ------------------------------------------------------------------
 // Delete — hapus data
 // POST /potential-partners/delete/:id
 // ------------------------------------------------------------------

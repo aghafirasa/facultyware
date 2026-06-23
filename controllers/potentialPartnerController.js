@@ -312,15 +312,16 @@ const potentialPartnerController = {
     }
 
     try {
-      // Cek dan ambil partner_id dari partner_potentials
+      // Cek dan ambil partner_id dan status dari partner_potentials
       const [ppRows] = await db.query(
-        'SELECT partner_id FROM partner_potentials WHERE id = ?', [id]
+        'SELECT partner_id, status FROM partner_potentials WHERE id = ?', [id]
       );
       if (ppRows.length === 0) {
         req.session.flash = { error: 'Data potential partner tidak ditemukan.' };
         return res.redirect('/potential-partners');
       }
       const partner_id = ppRows[0].partner_id;
+      const currentStatus = ppRows[0].status;
 
       // 1. UPDATE tabel partners (data instansi)
       await db.query(
@@ -339,18 +340,14 @@ const potentialPartnerController = {
         ]
       );
 
-      // 2. UPDATE tabel partner_potentials (status + description + title)
-      const validStatuses = ['identified', 'in_discussion', 'proposed', 'converted', 'rejected'];
-      const newStatus = validStatuses.includes(status) ? status : 'identified';
-
+      // 2. UPDATE tabel partner_potentials (description + title)
       await db.query(
         `UPDATE partner_potentials
-         SET title = ?, description = ?, status = ?, updated_at = NOW()
+         SET title = ?, description = ?, updated_at = NOW()
          WHERE id = ?`,
         [
           company_name.trim(),
           description ? description.trim() || null : null,
-          newStatus,
           id,
         ]
       );
@@ -377,7 +374,7 @@ const potentialPartnerController = {
           email ? email.trim() || null : null,
           phone ? phone.trim() || null : null,
           address ? address.trim() || null : null,
-          newStatus === 'rejected' ? 'nonaktif' : 'aktif',
+          currentStatus === 'rejected' ? 'nonaktif' : 'aktif',
           id
         ]
       );
@@ -438,6 +435,82 @@ const potentialPartnerController = {
       console.error('[PP delete]', err);
       req.session.flash = { error: 'Gagal menghapus data: ' + err.message };
       res.redirect('/potential-partners');
+    }
+  },
+
+  // ----------------------------------------------------------
+  // APPROVE — setujui kerjasama potensial menjadi aktif
+  // ----------------------------------------------------------
+  approve: async (req, res) => {
+    const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      req.session.flash = { error: 'ID tidak valid.' };
+      return res.redirect('/potential-partners');
+    }
+
+    try {
+      // 1. Update status di partner_potentials menjadi 'converted'
+      await db.query(
+        "UPDATE partner_potentials SET status = 'converted', updated_at = NOW() WHERE id = ?",
+        [id]
+      );
+
+      // 2. Sync ke tabel potential_partners (status: 'aktif')
+      await db.query(
+        "UPDATE potential_partners SET status = 'aktif', updated_at = NOW() WHERE id = ?",
+        [id]
+      );
+
+      // 3. Sync ke tabel mou (status: 'disetujui' jika ada)
+      await db.query(
+        "UPDATE mou SET status = 'disetujui', updated_at = NOW() WHERE potential_partner_id = ?",
+        [id]
+      );
+
+      req.session.flash = { success: 'Kemitraan berhasil disetujui menjadi Aktif.' };
+      res.redirect(`/potential-partners/edit/${id}`);
+    } catch (err) {
+      console.error('[PP approve]', err);
+      req.session.flash = { error: 'Gagal menyetujui kemitraan: ' + err.message };
+      res.redirect(`/potential-partners/edit/${id}`);
+    }
+  },
+
+  // ----------------------------------------------------------
+  // REJECT — tolak kerjasama potensial
+  // ----------------------------------------------------------
+  reject: async (req, res) => {
+    const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      req.session.flash = { error: 'ID tidak valid.' };
+      return res.redirect('/potential-partners');
+    }
+
+    try {
+      // 1. Update status di partner_potentials menjadi 'rejected'
+      await db.query(
+        "UPDATE partner_potentials SET status = 'rejected', updated_at = NOW() WHERE id = ?",
+        [id]
+      );
+
+      // 2. Sync ke tabel potential_partners (status: 'nonaktif')
+      await db.query(
+        "UPDATE potential_partners SET status = 'nonaktif', updated_at = NOW() WHERE id = ?",
+        [id]
+      );
+
+      // 3. Sync ke tabel mou (status: 'ditolak' jika ada)
+      await db.query(
+        "UPDATE mou SET status = 'ditolak', updated_at = NOW() WHERE potential_partner_id = ?",
+        [id]
+      );
+
+      req.session.flash = { success: 'Kemitraan berhasil ditolak.' };
+      res.redirect(`/potential-partners/edit/${id}`);
+    } catch (err) {
+      console.error('[PP reject]', err);
+      req.session.flash = { error: 'Gagal menolak kemitraan: ' + err.message };
+      res.redirect(`/potential-partners/edit/${id}`);
     }
   },
 

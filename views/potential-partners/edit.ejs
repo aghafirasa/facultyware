@@ -223,14 +223,16 @@
                     </select>
                   </div>
                   <div class="field">
-                    <label class="label" for="status">Status</label>
-                    <select id="status" name="status" class="input">
-                      <option value="identified"    <%= potentialPartner.status === 'identified'    ? 'selected' : '' %>>Teridentifikasi</option>
-                      <option value="in_discussion" <%= potentialPartner.status === 'in_discussion' ? 'selected' : '' %>>Dalam Diskusi</option>
-                      <option value="proposed"      <%= potentialPartner.status === 'proposed'      ? 'selected' : '' %>>Diajukan</option>
-                      <option value="converted"     <%= potentialPartner.status === 'converted'     ? 'selected' : '' %>>Kerjasama</option>
-                      <option value="rejected"      <%= potentialPartner.status === 'rejected'      ? 'selected' : '' %>>Ditolak</option>
-                    </select>
+                    <label class="label">Status</label>
+                    <div style="margin-top: 8px;">
+                      <% 
+                        const statusBadge = {identified:'badge-info', in_discussion:'badge-warning', proposed:'badge-secondary', converted:'badge-success', rejected:'badge-destructive'};
+                        const statusLabel = {identified:'Teridentifikasi', in_discussion:'Dalam Diskusi', proposed:'Diajukan', converted:'Kerjasama (Aktif)', rejected:'Ditolak'}; 
+                      %>
+                      <span class="badge <%= statusBadge[potentialPartner.status] || 'badge-outline' %> text-xs font-semibold px-3 py-1" style="font-size: 0.85rem; padding: 4px 10px;">
+                        <%= statusLabel[potentialPartner.status] || potentialPartner.status %>
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -254,6 +256,30 @@
               </form>
             </div>
           </div>
+
+          <% if (potentialPartner.status !== 'converted' && potentialPartner.status !== 'rejected') { %>
+          <!-- Keputusan Kerjasama (Approve/Reject) -->
+          <div class="card border-zinc-200 dark:border-zinc-800">
+            <div class="card-header">
+              <h2 class="card-title text-base">Keputusan Kerjasama</h2>
+              <p class="card-description">Tentukan apakah kerjasama dengan mitra ini disetujui menjadi aktif atau ditolak.</p>
+            </div>
+            <div class="card-content flex flex-col sm:flex-row gap-3">
+              <form action="/potential-partners/approve/<%= potentialPartner.id %>" method="POST" class="flex-1">
+                <button type="submit" id="btn-setujui-kerjasama" class="btn btn-success w-full gap-2 justify-center" style="background-color:#16a34a;color:white;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Setujui Kerjasama (Aktif)
+                </button>
+              </form>
+              <form action="/potential-partners/reject/<%= potentialPartner.id %>" method="POST" class="flex-1">
+                <button type="submit" id="btn-tolak-kerjasama" class="btn btn-warning w-full gap-2 justify-center" style="background-color:#d97706;color:white;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                  Tolak Kerjasama
+                </button>
+              </form>
+            </div>
+          </div>
+          <% } %>
 
           <!-- Danger Zone -->
           <div class="card border-destructive/30">
