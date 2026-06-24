@@ -55,6 +55,16 @@ router.get('/',
 );
 
 // ------------------------------------------------------------------
+// Detail — tampilkan detail informasi
+// GET /potential-partners/detail/:id
+// ------------------------------------------------------------------
+router.get('/detail/:id',
+  isAuthenticated,
+  checkPermission('potential-partner.view'),
+  potentialPartnerController.detail
+);
+
+// ------------------------------------------------------------------
 // Add — tampilkan form tambah
 // GET /potential-partners/add
 // ------------------------------------------------------------------

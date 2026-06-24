@@ -144,10 +144,38 @@ const potentialPartnerController = {
         messages,
         user: req.session.username || 'Admin',
       });
+  },
+
+  // ----------------------------------------------------------
+  // DETAIL — tampilkan detail informasi
+  // ----------------------------------------------------------
+  detail: async (req, res) => {
+    const { id } = req.params;
+
+    if (!id || isNaN(parseInt(id))) {
+      req.session.flash = { error: 'ID tidak valid.' };
+      return res.redirect('/potential-partners');
+    }
+
+    try {
+      const [results] = await db.query(
+        `${BASE_SELECT} WHERE pp.id = ?`, [id]
+      );
+
+      if (results.length === 0) {
+        req.session.flash = { error: 'Data potential partner tidak ditemukan.' };
+        return res.redirect('/potential-partners');
+      }
+
+      res.render('potential-partners/detail', {
+        potentialPartner : results[0],
+        title            : 'Detail Potential Partner',
+        user             : req.session.username || 'Admin',
+      });
     } catch (err) {
-      console.error('[PP list]', err);
-      req.session.flash = { error: 'Gagal mengambil data: ' + err.message };
-      res.redirect('/');
+      console.error('[PP detail]', err);
+      req.session.flash = { error: 'Gagal memuat detail data: ' + err.message };
+      res.redirect('/potential-partners');
     }
   },
 
