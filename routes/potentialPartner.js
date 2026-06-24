@@ -4,6 +4,11 @@ const { index, create, store, edit, update, destroy } = require('../controllers/
 const { isAuthenticated } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/acl');
 
+const apiController = require('../controllers/apiController');
+
+router.get('/api', apiController.getPotentialPartners);
+router.post('/api', apiController.postPotentialPartners);
+
 router.get('/', isAuthenticated, isAdmin, index);
 router.get('/create', isAuthenticated, isAdmin, create);
 router.post('/store', isAuthenticated, isAdmin, store);

@@ -10,7 +10,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error('Koneksi database gagal:', err.message);
+    console.error('Koneksi database gagal:', err);
     process.exit(1);
   }
   console.log('Database terhubung dengan aman menggunakan variabel lingkungan.');

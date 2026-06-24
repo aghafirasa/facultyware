@@ -5,15 +5,14 @@ const potentialPartnerController = require('../controllers/potentialPartnerContr
 const { isAuthenticated }        = require('../middlewares/auth');
 const { checkPermission }        = require('../middlewares/acl');
 
+const apiController = require('../controllers/apiController');
+
 // ------------------------------------------------------------------
 // REST API — harus sebelum route lain agar tidak konflik dengan /:id
-// GET /potential-partners/api
+// GET & POST /potential-partners/api
 // ------------------------------------------------------------------
-router.get('/api',
-  isAuthenticated,
-  checkPermission('potential-partner.api'),
-  potentialPartnerController.apiList
-);
+router.get('/api', apiController.getPotentialPartners);
+router.post('/api', apiController.postPotentialPartners);
 
 // ------------------------------------------------------------------
 // Export CSV
