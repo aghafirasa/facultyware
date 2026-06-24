@@ -144,6 +144,11 @@ const potentialPartnerController = {
         messages,
         user: req.session.username || 'Admin',
       });
+    } catch (err) {
+      console.error('[PP list]', err);
+      req.session.flash = { error: 'Gagal mengambil data: ' + err.message };
+      res.redirect('/');
+    }
   },
 
   // ----------------------------------------------------------
